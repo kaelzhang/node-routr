@@ -34,12 +34,12 @@ var cases = [
     //     route: '/page/*'
     // }
 
-    // {
-    //     desc: 'optional segmants, unoptional',
-    //     route: '/page(/:a(/:b))',
-    //     path: '/page',
-    //     result: {}
-    // },
+    {
+        desc: 'optional segmants, unoptional',
+        route: '/page(/:a)',
+        path: '/page',
+        result: {}
+    },
 
     // {
     //     desc: 'optional segmants, matched optional parts',
