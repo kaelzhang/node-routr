@@ -2,7 +2,7 @@
 
 module.exports = router;
 
-router.Rule = require('./lib/rule');
+router.Route = require('./lib/route');
 router.Router = Router;
 
 function router (options) {
