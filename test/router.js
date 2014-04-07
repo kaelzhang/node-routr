@@ -56,6 +56,12 @@ var cases = [
         params: {
             name: 'a/b/c/d'
         }
+    },
+
+    {
+        path: '/user/123/create',
+        result: null,
+        params: null
     }
 ];
 
@@ -64,7 +70,7 @@ describe("Router", function(){
     var r = routr(routes);
 
     cases.forEach(function (c) {
-        it("description", function(){
+        it("match path: " + c.path, function(){
             r.route(c.path, function (result, params) {
                 expect(result).to.deep.equal(c.result);
                 expect(params).to.deep.equal(c.params);
