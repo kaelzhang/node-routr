@@ -29,16 +29,26 @@ var cases = [
     },
 
     {
-        disabled: true,
         desc: 'Optional segments with nested parentheses',
         route: '/page(/:a(/:b))',
         path: 'page/a/1',
         result: {
             a: 'a',
-            b: 1
+            b: '1'
         }
     },
 
+    // Easy to make mistakes
+    {
+        desc: 'Optional segments, which might be treated wrong by parser',
+        route: '/page(s)(/:b)',
+        path: 'pages/a',
+        result: {
+            b: 'a'
+        }
+    },
+
+    // Easy to make mistakes
     {
         desc: 'Route globbing and wildcard segments',
         route: '/page/*page',
