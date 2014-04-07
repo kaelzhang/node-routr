@@ -43,13 +43,12 @@ function Router (routes) {
 
 
 Router.prototype.route = function(path, callback) {
-    this._routes.some(function (route, index) {
+    var matched = this._routes.some(function (route, index) {
         var params = route.match(path);
 
         if ( params ) {
-            var matched = this.routes[index];
-            var substituted = this._apply(matched, params);
-            console.log(params, matched, substituted)
+            var r = this.routes[index];
+            var substituted = this._apply(r, params);
             callback(substituted, params);
 
             return true;
@@ -57,7 +56,9 @@ Router.prototype.route = function(path, callback) {
 
     }, this);
 
-    callback(null);
+    if ( !matched ) {
+        callback(null);
+    }
 };
 
 
@@ -70,7 +71,8 @@ Router.prototype._apply = function(object, params) {
         }
 
         ret[key] = value;
-    });
+
+    }, this);
 
     return ret;
 };
@@ -85,14 +87,14 @@ Router.prototype._substitute = function(template, params) {
 };
 
 
-Router.prototype._each = function(object, callback) {
+Router.prototype._each = function(object, callback, context) {
     var key;
     var value;
 
     for (key in object) {
-        value = object[value];
+        value = object[key];
 
-        callback(value, key);
+        callback.call(context || null, value, key);
     }
 };
 
