@@ -22,7 +22,7 @@ var cases = [
     },
 
     {
-        desc: 'Optional segmants denoted by parentheses',
+        desc: 'Optional segments denoted by parentheses',
         route: '/page(/:a)',
         path: '/page',
         result: {}
@@ -30,7 +30,7 @@ var cases = [
 
     {
         disabled: true,
-        desc: 'Optional segmants with nested parentheses',
+        desc: 'Optional segments with nested parentheses',
         route: '/page(/:a(/:b))',
         path: 'page/a/1',
         result: {
@@ -40,7 +40,7 @@ var cases = [
     },
 
     {
-        desc: 'Route globbing and wildcard segmants',
+        desc: 'Route globbing and wildcard segments',
         route: '/page/*page',
         path: '/page/a/b',
         result: {
@@ -49,7 +49,7 @@ var cases = [
     },
 
     {
-        desc: 'Route globbing and wildcard segmants: lazy match',
+        desc: 'Route globbing and wildcard segments: lazy match',
         route: '/page/*section/:title',
         path: '/page/a/c/this-is-a-title',
         result: {
