@@ -56,6 +56,29 @@ var cases = [
             section: 'a/c',
             title: 'this-is-a-title'
         }
+    },
+
+    {
+        desc: 'Ending simple wildcards',
+        route: '/page/*',
+        path: '/page/a/c/this-is-a-title',
+        result: {}
+    },
+
+    {
+        desc: 'Ending simple wildcards, non matches',
+        route: '/page/*/',
+        path: '/page/a/c/this-is-a-title',
+        result: null
+    },
+
+    {
+        desc: 'Simple wildcards in the middle',
+        route: '/page/*/:title',
+        path: '/page/a/c/this-is-a-title',
+        result: {
+            title: 'this-is-a-title'
+        }
     }
 ];
 
