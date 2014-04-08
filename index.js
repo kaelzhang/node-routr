@@ -1,102 +1,133 @@
 'use strict';
 
-module.exports = router;
+module.exports = routr;
+routr.Routr = Routr;
 
-router.Route = require('./lib/route');
-router.Router = Router;
-
+function routr (pattern, options) {
+    return new Routr(pattern, options);
+}
 
 var util = require('util');
 
-function router (routes) {
-    return new Router(routes);
+
+var REPLACES = [
+    [
+        // Some chars need to be escaped or 
+        // they will be transcribed into key words when `new RegExp`
+        /[\-{}\[\]+?.,\\\^$|#\s]/g, 
+        '\\$&'
+    ],
+
+    [
+        // Ungroup the optional group, 
+        // so the matched parts of route patterns should not be ruined 
+        // '(abc)' -> '(?:abc)?'
+        /\((.*?)\)/g,
+        '(?:$1)?'
+    ],
+
+    [
+        // Named parameters or wildcard segments
+        /(:|\*)(\w+)?/g,
+
+        // @this {Routr}
+        function (match, type, name) {
+            var replace;
+
+            if ( type === ':' ) {
+                if ( name ) {
+                    replace = '([^\/?]+?)';
+                } 
+                // else do not replace, to avoid replacing `(?:xxx)`
+
+            } else {
+                replace = '([^?]+?)';
+            }
+
+            if ( replace ) {
+                this.keys.push(name);
+            }
+
+            return replace || match;
+        }
+    ]
+];
+
+
+// Cached regular expressions for matching named param parts and splatted
+// parts of route strings.
+var optionalParam = /\((.*?)\)/g;
+var namedParam    = /(\(\?)?:\w+/g;
+var splatParam    = /\*\w+/g;
+var escapeRegExp  = /[\-{}\[\]+?.,\\\^$|#\s]/g;
+
+// route = route.replace(escapeRegExp, '\\$&')
+//     .replace(optionalParam, '(?:$1)?')
+//     .replace(namedParam, function(match, optional) {
+//      return optional ? match : '([^/?]+)';
+//     })
+//     .replace(splatParam, '([^?]*?)');
+
+
+// @param {Object} options
+// - constraints: 
+// - defaults: 
+function Routr (pattern, options) {
+    this.pattern = pattern;
+    this.keys = [];
+
+    this._makeRegex();
 }
 
 
-// @param {Array} routes
-// [
-//     {
-//         route: '/:action/:id',
-//         defaults: {
-//             title: 'my-title'
-//         },
-//         constraints: {
-//             id: /\d+/
-//         },
-//         other_property: 'blah-blah'
-//     }
-// ]
-function Router (routes) {
-    routes = util.isArray(routes)
-        ? routes
-        : [routes];
-
-    routes = routes.filter(function (route) {
-        return route && route.route; 
-    });
-
-    this.routes = routes;
-    this._routes = routes.map(function (route) {
-        return new router.Route(route.route, route); 
-    });
+function isFunction (subject) {
+    return typeof subject === 'function';
 }
 
 
-Router.prototype.route = function(path, callback) {
-    var matched = this._routes.some(function (route, index) {
-        var params = route.match(path);
+Routr.prototype._makeRegex = function() {
+    var route = this.pattern;
 
-        if ( params ) {
-            var r = this.routes[index];
-            var substituted = this._apply(r, params);
-            callback(substituted, params);
-
-            return true;
+    REPLACES.forEach(function (replace) {
+        if ( util.isFunction(replace) ) {
+            route = replace.call(this, route);
+            return;
         }
 
+        var replacer = replace[1];
+
+        if ( util.isFunction(replacer) ) {
+            replacer = replacer.bind(this);
+        }
+
+        route = route.replace(replace[0], replacer);
     }, this);
 
-    if ( !matched ) {
-        callback(null);
-    }
+    this.regex = new RegExp('^' + route + '(?:\\?(.*))?$');
 };
 
 
-Router.prototype._apply = function(object, params) {
-    var ret = {};
+Routr.prototype.match = function(path) {
+    var match = path.match(this.regex);
 
-    this._each(object, function (value, key) {
-        if ( key !== 'route' && util.isString(value) ) {
-            value = this._substitute(value, params);
-        }
-
-        ret[key] = value;
-
-    }, this);
-
-    return ret;
+    return match && this._makeObject(match);
 };
 
 
-Router.prototype._substitute = function(template, params) {
-    this._each(params, function (value, key) {
-        template = template.replace( new RegExp(':' + key, 'g'), value ); 
+Routr.prototype._makeObject = function(match) {
+    var obj = {};
+
+    this.keys.forEach(function (key, index) {
+        // There are wildcards without names
+        if ( key ) {
+            var part = match[index + 1];
+
+            if ( part ) {
+                obj[key] = part;
+            }
+        }        
     });
 
-    return template;
+    return obj;
 };
-
-
-Router.prototype._each = function(object, callback, context) {
-    var key;
-    var value;
-
-    for (key in object) {
-        value = object[key];
-
-        callback.call(context || null, value, key);
-    }
-};
-
-
 
