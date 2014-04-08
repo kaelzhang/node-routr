@@ -1,6 +1,7 @@
 # Cortex
 build/
 .cortex/
+old/
 
 # PHP files
 index.php
